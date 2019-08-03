@@ -1,0 +1,49 @@
+Arguments: 
+  /usr/local/bin/node /opt/yarn-v1.17.3/bin/yarn.js import
+
+PATH: 
+  /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+Yarn version: 
+  1.17.3
+
+Node version: 
+  10.16.1
+
+Platform: 
+  linux x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/workspace-aggregator-ea4513fd-0cbb-4e86-9315-a49c6388299a: Not found
+      at Request.params.callback [as _callback] (/opt/yarn-v1.17.3/lib/cli.js:66830:18)
+      at Request.self.callback (/opt/yarn-v1.17.3/lib/cli.js:140464:22)
+      at Request.emit (events.js:198:13)
+      at Request.<anonymous> (/opt/yarn-v1.17.3/lib/cli.js:141436:10)
+      at Request.emit (events.js:198:13)
+      at IncomingMessage.<anonymous> (/opt/yarn-v1.17.3/lib/cli.js:141358:12)
+      at Object.onceWrapper (events.js:286:20)
+      at IncomingMessage.emit (events.js:203:15)
+      at endReadableNT (_stream_readable.js:1145:12)
+      at process._tickCallback (internal/process/next_tick.js:63:19)
+
+npm manifest: 
+  {
+    "name": "gatsby-starter-theme-workspace",
+    "private": true,
+    "version": "0.0.1",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+      "build": "yarn workspace example build"
+    },
+    "workspaces": [
+      "gatsby-theme-minimal",
+      "example"
+    ]
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
