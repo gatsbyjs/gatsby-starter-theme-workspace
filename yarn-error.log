@@ -14,7 +14,7 @@ Platform:
   linux x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/workspace-aggregator-8566e90a-2db6-43c5-9b89-c9cd8fda4d9f: Not found
+  Error: https://registry.yarnpkg.com/workspace-aggregator-3e26d2a5-68f7-4294-bc44-476f26f2910b: Not found
       at Request.params.callback [as _callback] (/opt/yarn-v1.17.3/lib/cli.js:66830:18)
       at Request.self.callback (/opt/yarn-v1.17.3/lib/cli.js:140464:22)
       at Request.emit (events.js:198:13)
