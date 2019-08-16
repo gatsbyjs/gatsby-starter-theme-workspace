@@ -8,13 +8,13 @@ Yarn version:
   1.17.3
 
 Node version: 
-  10.16.2
+  10.16.3
 
 Platform: 
   linux x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/workspace-aggregator-235cfd94-1303-4f24-8b1a-1b117af2b9c6: Not found
+  Error: https://registry.yarnpkg.com/workspace-aggregator-d8fffd8c-1b8c-4f12-93dd-6993057a9de4: Not found
       at Request.params.callback [as _callback] (/opt/yarn-v1.17.3/lib/cli.js:66830:18)
       at Request.self.callback (/opt/yarn-v1.17.3/lib/cli.js:140464:22)
       at Request.emit (events.js:198:13)
