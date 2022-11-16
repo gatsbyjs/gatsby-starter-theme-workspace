@@ -4,11 +4,12 @@
   "author": "christopherbiscardi <chris@christopherbiscardi.com> (@chrisbiscardi)",
   "license": "MIT",
   "scripts": {
+    "clean": "gatsby clean",
     "develop": "gatsby develop",
     "build": "gatsby build"
   },
   "dependencies": {
-    "gatsby": "^4.24.7",
+    "gatsby": "gatsby-dev",
     "gatsby-theme-minimal": "^1.0.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0"

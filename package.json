@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "license": "0BSD",
   "scripts": {
+    "clean": "yarn workspace example clean",
     "build": "yarn workspace example build"
   },
   "workspaces": [
