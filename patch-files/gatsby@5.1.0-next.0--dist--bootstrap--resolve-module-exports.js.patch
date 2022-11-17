@@ -41,7 +41,7 @@ Index: node_modules/gatsby/dist/bootstrap/resolve-module-exports.js
      let absPath;
  
      try {
-@@ -193,15 +197,24 @@
+@@ -193,15 +197,27 @@
        if (!(0, _testRequireError.testRequireError)(modulePath, e)) {
          // if module exists, but requiring it cause errors,
          // show the error to the user and terminate build
@@ -56,11 +56,14 @@ Index: node_modules/gatsby/dist/bootstrap/resolve-module-exports.js
 +
 +
 +  if (failedWithoutRequireError) {
-+    // Let's see if it's a gatsby-node.mjs file
-+    const url = (0, _url.pathToFileURL)(`${modulePath}.mjs`);
-+    const importedModule = await import(url.href);
-+    const importedModuleExports = Object.keys(importedModule).filter(exportName => exportName !== `__esModule`);
-+    return importedModuleExports;
++    try {
++      // Let's see if it's a gatsby-node.mjs file
++      const url = (0, _url.pathToFileURL)(`${modulePath}.mjs`);
++      const importedModule = await import(url.href);
++      const importedModuleExports = Object.keys(importedModule).filter(exportName => exportName !== `__esModule`);
++      return importedModuleExports;
++    } catch (error) {// TODO: Do something like testRequireError above to differentiate errors that are not import related
++    }
    }
  
    return [];

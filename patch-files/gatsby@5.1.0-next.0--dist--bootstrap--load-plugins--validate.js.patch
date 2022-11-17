@@ -13,15 +13,16 @@ Index: node_modules/gatsby/dist/bootstrap/load-plugins/validate.js
    flattenedPlugins
  }) {
    // Get a list of bad exports
-@@ -313,23 +313,33 @@
+@@ -313,22 +313,23 @@
      node: [],
      browser: [],
      ssr: []
    };
 -  flattenedPlugins.forEach(plugin => {
--    var _plugin$resolvedCompi;
- 
++
 +  for (const plugin of flattenedPlugins) {
+     var _plugin$resolvedCompi;
+ 
      plugin.nodeAPIs = [];
      plugin.browserAPIs = [];
      plugin.ssrAPIs = []; // Discover which APIs this plugin implements and store an array against
@@ -29,32 +30,18 @@ Index: node_modules/gatsby/dist/bootstrap/load-plugins/validate.js
      // later.
  
 -    const pluginNodeExports = (0, _resolveModuleExports.resolveModuleExports)((_plugin$resolvedCompi = plugin.resolvedCompiledGatsbyNode) !== null && _plugin$resolvedCompi !== void 0 ? _plugin$resolvedCompi : `${plugin.resolve}/gatsby-node`, {
--      mode: `require`
--    });
++    const pluginNodeExports = await (0, _resolveModuleExports.resolveModuleExports)((_plugin$resolvedCompi = plugin.resolvedCompiledGatsbyNode) !== null && _plugin$resolvedCompi !== void 0 ? _plugin$resolvedCompi : `${plugin.resolve}/gatsby-node`, {
+       mode: `require`
+     });
 -    const pluginBrowserExports = (0, _resolveModuleExports.resolveModuleExports)(`${plugin.resolve}/gatsby-browser`);
 -    const pluginSSRExports = (0, _resolveModuleExports.resolveModuleExports)(`${plugin.resolve}/gatsby-ssr`);
-+    let pluginNodeExports;
- 
-+    try {
-+      var _plugin$resolvedCompi;
-+
-+      pluginNodeExports = await (0, _resolveModuleExports.resolveModuleExports)((_plugin$resolvedCompi = plugin.resolvedCompiledGatsbyNode) !== null && _plugin$resolvedCompi !== void 0 ? _plugin$resolvedCompi : `${plugin.resolve}/gatsby-node`, {
-+        mode: `require`
-+      });
-+    } catch (cause) {
-+      throw new Error(`ABC Failed to import gatsby-node`, {
-+        cause
-+      });
-+    }
-+
 +    const pluginBrowserExports = await (0, _resolveModuleExports.resolveModuleExports)(`${plugin.resolve}/gatsby-browser`);
 +    const pluginSSRExports = await (0, _resolveModuleExports.resolveModuleExports)(`${plugin.resolve}/gatsby-ssr`);
-+
+ 
      if (pluginNodeExports.length > 0) {
        plugin.nodeAPIs = (0, _intersection2.default)(pluginNodeExports, currentAPIs.node);
        badExports.node = badExports.node.concat(getBadExports(plugin, pluginNodeExports, currentAPIs.node)); // Collate any bad exports
-     }
-@@ -342,9 +352,10 @@
+@@ -342,9 +343,10 @@
      if (pluginSSRExports.length > 0) {
        plugin.ssrAPIs = (0, _intersection2.default)(pluginSSRExports, currentAPIs.ssr);
        badExports.ssr = badExports.ssr.concat(getBadExports(plugin, pluginSSRExports, currentAPIs.ssr)); // Collate any bad exports
