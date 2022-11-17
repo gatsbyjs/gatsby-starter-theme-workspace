@@ -1,0 +1,160 @@
+Index: node_modules/gatsby/dist/utils/api-runner-node.js
+===================================================================
+--- node_modules/gatsby/dist/utils/api-runner-node.js
++++ node_modules/gatsby/dist/utils/api-runner-node.js
+@@ -343,9 +343,9 @@
+ const availableActionsCache = new Map();
+ let publicPath;
+ 
+ const runAPI = async (plugin, api, args, activity) => {
+-  const gatsbyNode = requireGatsbyPlugin(plugin, `gatsby-node`);
++  const gatsbyNode = await requireGatsbyPlugin(plugin, `gatsby-node`);
+ 
+   if (gatsbyNode[api]) {
+     const parentSpan = args && args.parentSpan;
+     const spanOptions = parentSpan ? {
+@@ -635,80 +635,82 @@
+ 
+     runPromise(implementingPlugins, plugin => {
+       if (stopQueuedApiRuns) {
+         return null;
+-      }
++      } // TODO: Probably refactor
+ 
+-      const gatsbyNode = requireGatsbyPlugin(plugin, `gatsby-node`);
+-      const pluginName = plugin.name === `default-site-plugin` ? `gatsby-node.js` : plugin.name; // TODO: rethink createNode API to handle this better
+ 
+-      if (api === `onCreateNode` && gatsbyNode !== null && gatsbyNode !== void 0 && gatsbyNode.shouldOnCreateNode && // Don't bail if this api is not exported
+-      !gatsbyNode.shouldOnCreateNode({
+-        node: args.node
+-      }, plugin.pluginOptions)) {
+-        // Do not try to schedule an async event for this node for this plugin
+-        return null;
+-      }
++      return requireGatsbyPlugin(plugin, `gatsby-node`).then(gatsbyNode => {
++        const pluginName = plugin.name === `default-site-plugin` ? `gatsby-node.js` : plugin.name; // TODO: rethink createNode API to handle this better
+ 
+-      return new Promise(resolve => {
+-        resolve(runAPI(plugin, api, { ...args,
+-          parentSpan: apiSpan
+-        }, activity));
+-      }).catch(err => {
+-        decorateEvent(`BUILD_PANIC`, {
+-          pluginName: `${plugin.name}@${plugin.version}`
+-        });
+-        const localReporter = getLocalReporter({
+-          activity,
+-          reporter
+-        });
+-        const file = stackTrace.parse(err).find(file => /gatsby-node/.test(file.fileName));
+-        let codeFrame = ``;
+-        const structuredError = (0, _apiRunnerErrorParser.default)({
+-          err
+-        });
++        if (api === `onCreateNode` && gatsbyNode !== null && gatsbyNode !== void 0 && gatsbyNode.shouldOnCreateNode && // Don't bail if this api is not exported
++        !gatsbyNode.shouldOnCreateNode({
++          node: args.node
++        }, plugin.pluginOptions)) {
++          // Do not try to schedule an async event for this node for this plugin
++          return null;
++        }
+ 
+-        if (file) {
+-          const {
+-            fileName,
+-            lineNumber: line,
+-            columnNumber: column
+-          } = file;
+-          const trimmedFileName = fileName.match(/^(async )?(.*)/)[2];
++        return new Promise(resolve => {
++          resolve(runAPI(plugin, api, { ...args,
++            parentSpan: apiSpan
++          }, activity));
++        }).catch(err => {
++          decorateEvent(`BUILD_PANIC`, {
++            pluginName: `${plugin.name}@${plugin.version}`
++          });
++          const localReporter = getLocalReporter({
++            activity,
++            reporter
++          });
++          const file = stackTrace.parse(err).find(file => /gatsby-node/.test(file.fileName));
++          let codeFrame = ``;
++          const structuredError = (0, _apiRunnerErrorParser.default)({
++            err
++          });
+ 
+-          try {
+-            const code = fs.readFileSync(trimmedFileName, {
+-              encoding: `utf-8`
+-            });
+-            codeFrame = codeFrameColumns(code, {
++          if (file) {
++            const {
++              fileName,
++              lineNumber: line,
++              columnNumber: column
++            } = file;
++            const trimmedFileName = fileName.match(/^(async )?(.*)/)[2];
++
++            try {
++              const code = fs.readFileSync(trimmedFileName, {
++                encoding: `utf-8`
++              });
++              codeFrame = codeFrameColumns(code, {
++                start: {
++                  line,
++                  column
++                }
++              }, {
++                highlightCode: true
++              });
++            } catch (_e) {// sometimes stack trace point to not existing file
++              // particularly when file is transpiled and path actually changes
++              // (like pointing to not existing `src` dir or original typescript file)
++            }
++
++            structuredError.location = {
+               start: {
+-                line,
+-                column
++                line: line,
++                column: column
+               }
+-            }, {
+-              highlightCode: true
+-            });
+-          } catch (_e) {// sometimes stack trace point to not existing file
+-            // particularly when file is transpiled and path actually changes
+-            // (like pointing to not existing `src` dir or original typescript file)
++            };
++            structuredError.filePath = fileName;
+           }
+ 
+-          structuredError.location = {
+-            start: {
+-              line: line,
+-              column: column
+-            }
++          structuredError.context = { ...structuredError.context,
++            pluginName,
++            api,
++            codeFrame
+           };
+-          structuredError.filePath = fileName;
+-        }
+-
+-        structuredError.context = { ...structuredError.context,
+-          pluginName,
+-          api,
+-          codeFrame
+-        };
+-        localReporter.panicOnBuild(structuredError);
+-        return null;
++          localReporter.panicOnBuild(structuredError);
++          return null;
++        });
+       });
+     }, apiRunPromiseOptions).then(results => {
+       if (onAPIRunComplete) {
+         onAPIRunComplete();

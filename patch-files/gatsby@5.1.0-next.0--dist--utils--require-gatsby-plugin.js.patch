@@ -1,0 +1,59 @@
+Index: node_modules/gatsby/dist/utils/require-gatsby-plugin.js
+===================================================================
+--- node_modules/gatsby/dist/utils/require-gatsby-plugin.js
++++ node_modules/gatsby/dist/utils/require-gatsby-plugin.js
+@@ -2,21 +2,52 @@
+ 
+ exports.__esModule = true;
+ exports.requireGatsbyPlugin = requireGatsbyPlugin;
+ exports.setGatsbyPluginCache = setGatsbyPluginCache;
++
++var _url = require("url");
++
+ const pluginModuleCache = new Map();
+ 
+ function setGatsbyPluginCache(plugin, module, moduleObject) {
+   const key = `${plugin.name}/${module}`;
+   pluginModuleCache.set(key, moduleObject);
+ }
+ 
+-function requireGatsbyPlugin(plugin, module) {
++async function requireGatsbyPlugin(plugin, module) {
+   const key = `${plugin.name}/${module}`;
+   let pluginModule = pluginModuleCache.get(key);
+ 
+   if (!pluginModule) {
+-    pluginModule = require(module === `gatsby-node` && plugin.resolvedCompiledGatsbyNode ? plugin.resolvedCompiledGatsbyNode : `${plugin.resolve}/${module}`);
++    let requirePluginModulePath;
++
++    if (module === `gatsby-node` && plugin.resolvedCompiledGatsbyNode) {
++      requirePluginModulePath = plugin.resolvedCompiledGatsbyNode;
++    } else {
++      requirePluginModulePath = `${plugin.resolve}/${module}`;
++    }
++
++    try {
++      pluginModule = require(requirePluginModulePath);
++    } catch (failedToRequireError) {
++      const url = (0, _url.pathToFileURL)(`${requirePluginModulePath}.mjs`); // TODO: Refactor probably
++
++      try {
++        pluginModule = await import(url === null || url === void 0 ? void 0 : url.href);
++      } catch (failedToImportError) {
++        // TODO: Better error handling
++        throw new Error(`Failed to import plugin ${requirePluginModulePath}`, {
++          cause: failedToImportError
++        });
++      }
++
++      if (!pluginModule) {
++        throw new Error(`Failed to require plugin ${requirePluginModulePath}`, {
++          cause: failedToRequireError
++        });
++      }
++    }
++
+     pluginModuleCache.set(key, pluginModule);
+   }
+ 
+   return pluginModule;

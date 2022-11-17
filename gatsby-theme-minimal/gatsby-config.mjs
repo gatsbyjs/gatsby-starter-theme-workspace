@@ -1,5 +1,7 @@
 console.log(`I AM IN THEME`);
 
-const config = {};
+const config = {
+  plugins: [],
+};
 
 export default config;

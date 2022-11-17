@@ -1,0 +1,49 @@
+Index: node_modules/gatsby/dist/bootstrap/get-config-file.js
+===================================================================
+--- node_modules/gatsby/dist/bootstrap/get-config-file.js
++++ node_modules/gatsby/dist/bootstrap/get-config-file.js
+@@ -18,8 +18,10 @@
+ var _compileGatsbyFiles = require("../utils/parcel/compile-gatsby-files");
+ 
+ var _isNearMatch = require("../utils/is-near-match");
+ 
++var _url = require("url");
++
+ async function getConfigFile(siteDirectory, configName, distance = 3) {
+   let configPath = ``;
+   let configFilePath = ``;
+   let configModule; // Attempt to find compiled gatsby-config.js in .cache/compiled/gatsby-config.js
+@@ -101,8 +103,33 @@
+           context: {
+             configName
+           }
+         });
++      } // TODO: Maybe move this to a better spot in this function, let's test it here for now
++
++
++      if (nearMatch && nearMatch.endsWith(`.mjs`)) {
++        try {
++          configFilePath = _path.default.join(siteDirectory, nearMatch);
++          const url = (0, _url.pathToFileURL)(configFilePath);
++          const importedModule = await import(url.href);
++
++          if (!importedModule.default) {
++            // TODO: Structured error
++            console.error(`No default export found in gatsby-config.mjs`);
++          }
++
++          configModule = importedModule.default;
++          return {
++            configModule,
++            configFilePath
++          };
++        } catch (cause) {
++          // TODO: Structured error
++          throw new Error(`Failed to load .mjs config file`, {
++            cause
++          });
++        }
+       } // gatsby-config is misnamed
+ 
+ 
+       if (nearMatch) {

@@ -5,7 +5,8 @@
   "license": "0BSD",
   "scripts": {
     "clean": "yarn workspace example clean",
-    "build": "yarn workspace example build"
+    "build": "yarn workspace example build",
+    "prepare": "npx patch-files@latest"
   },
   "workspaces": [
     "gatsby-theme-minimal",

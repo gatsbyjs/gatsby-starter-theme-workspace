@@ -1,0 +1,78 @@
+Index: node_modules/gatsby/dist/schema/graphql-engine/print-plugins.js
+===================================================================
+--- node_modules/gatsby/dist/schema/graphql-engine/print-plugins.js
++++ node_modules/gatsby/dist/schema/graphql-engine/print-plugins.js
+@@ -35,26 +35,28 @@
+     await fs.remove(schemaCustomizationPluginsPath);
+   } catch (e) {// no-op
+   }
+ 
+-  return await fs.writeFile(schemaCustomizationPluginsPath, renderQueryEnginePlugins());
++  const queryEnginePlugins = await renderQueryEnginePlugins();
++  return await fs.writeFile(schemaCustomizationPluginsPath, queryEnginePlugins);
+ }
+ 
+-function renderQueryEnginePlugins() {
++async function renderQueryEnginePlugins() {
+   const {
+     flattenedPlugins
+   } = _redux.store.getState();
+ 
+   const usedPlugins = flattenedPlugins.filter(p => includePlugins.has(p.name) || !excludePlugins.has(p.name) && p.nodeAPIs.some(api => schemaCustomizationAPIs.has(api)));
+   const usedSubPlugins = findSubPlugins(usedPlugins, flattenedPlugins);
+-  return render(usedPlugins, usedSubPlugins);
++  const result = await render(usedPlugins, usedSubPlugins);
++  return result;
+ }
+ 
+ function relativePluginPath(resolve) {
+   return (0, _gatsbyCoreUtils.slash)(path.relative(path.dirname(schemaCustomizationPluginsPath), resolve));
+ }
+ 
+-function render(usedPlugins, usedSubPlugins) {
++async function render(usedPlugins, usedSubPlugins) {
+   const uniqGatsbyNode = uniq(usedPlugins);
+   const uniqSubPlugins = uniq(usedSubPlugins);
+   const sanitizedUsedPlugins = usedPlugins.map(plugin => {
+     // TODO: We don't support functions in pluginOptions here
+@@ -63,9 +65,9 @@
+       pluginFilepath: ``,
+       subPluginPaths: undefined
+     };
+   });
+-  const pluginsWithWorkers = filterPluginsWithWorkers(uniqGatsbyNode);
++  const pluginsWithWorkers = await filterPluginsWithWorkers(uniqGatsbyNode);
+   const subPluginModuleToImportNameMapping = new Map();
+   const imports = [...uniqGatsbyNode.map((plugin, i) => `import * as pluginGatsbyNode${i} from "${relativePluginPath(plugin.resolve)}/gatsby-node"`), ...pluginsWithWorkers.map((plugin, i) => `import * as pluginGatsbyWorker${i} from "${relativePluginPath(plugin.resolve)}/gatsby-worker"`), ...uniqSubPlugins.map((plugin, i) => {
+     const importName = `subPlugin${i}`;
+     subPluginModuleToImportNameMapping.set(plugin.modulePath, importName);
+@@ -108,16 +110,23 @@
+ `;
+   return output;
+ }
+ 
+-function filterPluginsWithWorkers(plugins) {
+-  return plugins.filter(plugin => {
++async function filterPluginsWithWorkers(plugins) {
++  const filteredPlugins = [];
++
++  for (const plugin of plugins) {
+     try {
+-      return Boolean((0, _requireGatsbyPlugin.requireGatsbyPlugin)(plugin, `gatsby-worker`));
+-    } catch (err) {
+-      return false;
++      const pluginWithWorker = await (0, _requireGatsbyPlugin.requireGatsbyPlugin)(plugin, `gatsby-worker`);
++
++      if (pluginWithWorker) {
++        filteredPlugins.push(plugin);
++      }
++    } catch (_) {// Do nothing
+     }
+-  });
++  }
++
++  return filteredPlugins;
+ }
+ 
+ function getSubpluginsByPluginPath(parentPlugin, path) {
+   const segments = path.split(`.`);

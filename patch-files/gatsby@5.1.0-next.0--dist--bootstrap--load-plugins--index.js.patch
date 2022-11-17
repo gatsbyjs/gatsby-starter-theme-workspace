@@ -1,0 +1,26 @@
+Index: node_modules/gatsby/dist/bootstrap/load-plugins/index.js
+===================================================================
+--- node_modules/gatsby/dist/bootstrap/load-plugins/index.js
++++ node_modules/gatsby/dist/bootstrap/load-plugins/index.js
+@@ -42,16 +42,16 @@
+ 
+   const pluginArray = (0, _flattenPlugins.flattenPlugins)(pluginInfos); // Work out which plugins use which APIs, including those which are not
+   // valid Gatsby APIs, aka 'badExports'
+ 
+-  const x = (0, _validate.collatePluginAPIs)({
++  let {
++    flattenedPlugins,
++    badExports
++  } = await (0, _validate.collatePluginAPIs)({
+     currentAPIs,
+     flattenedPlugins: pluginArray
+-  }); // From this point on, these are fully-resolved plugins.
++  }); // Show errors for any non-Gatsby APIs exported from plugins
+ 
+-  let flattenedPlugins = x.flattenedPlugins;
+-  const badExports = x.badExports; // Show errors for any non-Gatsby APIs exported from plugins
+-
+   await (0, _validate.handleBadExports)({
+     currentAPIs,
+     badExports
+   }); // Show errors when ReplaceRenderer has been implemented multiple times

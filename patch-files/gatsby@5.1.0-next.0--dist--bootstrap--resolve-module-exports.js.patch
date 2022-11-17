@@ -1,0 +1,72 @@
+Index: node_modules/gatsby/dist/bootstrap/resolve-module-exports.js
+===================================================================
+--- node_modules/gatsby/dist/bootstrap/resolve-module-exports.js
++++ node_modules/gatsby/dist/bootstrap/resolve-module-exports.js
+@@ -2,9 +2,9 @@
+ 
+ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+ 
+ exports.__esModule = true;
+-exports.resolveModuleExports = void 0;
++exports.resolveModuleExports = resolveModuleExports;
+ 
+ var fs = _interopRequireWildcard(require("fs-extra"));
+ 
+ var t = _interopRequireWildcard(require("@babel/types"));
+@@ -20,8 +20,10 @@
+ var _testRequireError = require("../utils/test-require-error");
+ 
+ var _moduleResolver = require("../utils/module-resolver");
+ 
++var _url = require("url");
++
+ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+ 
+ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+ 
+@@ -178,12 +180,14 @@
+  * @param resolver
+  */
+ 
+ 
+-const resolveModuleExports = (modulePath, {
++async function resolveModuleExports(modulePath, {
+   mode = `analysis`,
+   resolver = _moduleResolver.resolveModule
+-} = {}) => {
++} = {}) {
++  let failedWithoutRequireError = false;
++
+   if (mode === `require`) {
+     let absPath;
+ 
+     try {
+@@ -193,15 +197,24 @@
+       if (!(0, _testRequireError.testRequireError)(modulePath, e)) {
+         // if module exists, but requiring it cause errors,
+         // show the error to the user and terminate build
+         _reporter.default.panic(`Error in "${absPath}":`, e);
++      } else {
++        failedWithoutRequireError = true;
+       }
+     }
+   } else {
+     return staticallyAnalyzeExports(modulePath, resolver);
++  } // TODO: Maybe move this to a better spot, let's test it here for now
++
++
++  if (failedWithoutRequireError) {
++    // Let's see if it's a gatsby-node.mjs file
++    const url = (0, _url.pathToFileURL)(`${modulePath}.mjs`);
++    const importedModule = await import(url.href);
++    const importedModuleExports = Object.keys(importedModule).filter(exportName => exportName !== `__esModule`);
++    return importedModuleExports;
+   }
+ 
+   return [];
+-};
+-
+-exports.resolveModuleExports = resolveModuleExports;
++}
+ //# sourceMappingURL=resolve-module-exports.js.map
+\ No newline at end of file

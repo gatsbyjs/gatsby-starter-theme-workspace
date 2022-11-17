@@ -1,0 +1,15 @@
+Index: node_modules/gatsby/dist/utils/parcel/compile-gatsby-files.js
+===================================================================
+--- node_modules/gatsby/dist/utils/parcel/compile-gatsby-files.js
++++ node_modules/gatsby/dist/utils/parcel/compile-gatsby-files.js
+@@ -92,9 +92,9 @@
+         name
+       } = _path.default.parse(file); // Of course, allow valid gatsby-node files
+ 
+ 
+-      if (file === `gatsby-node.js` || file === `gatsby-node.ts`) {
++      if (file === `gatsby-node.js` || file === `gatsby-node.mjs` || file === `gatsby-node.ts`) {
+         break;
+       }
+ 
+       if ((0, _isNearMatch.isNearMatch)(name, configName, 3)) {
