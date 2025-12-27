@@ -3,6 +3,11 @@
     <img alt="Gatsby" src="https://www.gatsbyjs.com/Gatsby-Monogram.svg" width="60" />
   </a>
 </p>
+
+<p align="center">
+  <strong>ENGLISH</strong> | <a href="./README.TW.md">繁體中文（臺灣)</a>
+</p>
+
 <h1 align="center">
   Starter for creating a Gatsby Theme workspace
 </h1>
